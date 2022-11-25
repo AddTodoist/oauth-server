@@ -2,12 +2,12 @@ import { createServer, RequestListener } from 'http';
 import { parse, URL } from 'url';
 import type { Project } from '@doist/todoist-api-typescript';
 import axios from 'axios';
-import { sendDirectMessage } from 'TWAPI';
-import TEXTS from './Texts.js';
-import UserInfo from 'DB';
-import { encryptString, hashId } from 'DB/encrypts.js';
-import Bugsnag from 'bugsnag';
-import { getTodoistProjects } from 'utils/todoist.js';
+import { sendDirectMessage } from 'services/twitter-api';
+import TEXTS from './texts';
+import UserInfo from 'services/database';
+import { encryptString, hashId } from 'services/crypto';
+import Bugsnag from 'services/bugsnag';
+import { getTodoistProjects } from 'services/todoist-api';
 
 export async function setupOAuthServer() {
   const server = createServer(requestListener);
