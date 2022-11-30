@@ -7,7 +7,7 @@ import TEXTS from './texts';
 import UserInfo from 'services/database';
 import { encryptString, hashId } from 'services/crypto';
 import Bugsnag from 'services/bugsnag';
-import { getTodoistProjects } from 'services/todoist-api';
+import { getTodoistProjects, getTodoistUserData } from 'services/todoist-api';
 
 export async function setupOAuthServer() {
   const server = createServer(requestListener);
@@ -66,6 +66,7 @@ const requestListener: RequestListener = async (req, res) => {
     _id: hashId(twId),
     todoistToken: encryptString(token),
     todoistProjectId: '0',
+    todoistId: '0'
   });
 
   try {
@@ -91,6 +92,16 @@ const requestListener: RequestListener = async (req, res) => {
     return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: err 11`);
   }
 
+  let todoistId: string;
+  try {
+    const { id } = await getTodoistUserData(token);
+    todoistId = id;
+  } catch (err) {
+    Bugsnag.notify(err);
+    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: err 11.1`);
+  }
+
+  user.todoistId = todoistId;
   user.todoistProjectId = projects[0].id;
 
   try {
