@@ -44,7 +44,7 @@
     "twitter-api-v2": "1.12.9"
   },
   "engines": {
-    "node": ">=18.12.1"
+    "node": ">=18"
   },
   "repository": {
     "type": "git",
