@@ -1,7 +1,5 @@
 import { createServer, RequestListener } from 'http';
 import { parse, URL } from 'url';
-import type { Project } from '@doist/todoist-api-typescript';
-import axios from 'axios';
 import { sendDirectMessage } from 'services/twitter-api';
 import TEXTS from './texts';
 import UserInfo from 'services/database';
@@ -77,43 +75,31 @@ const requestListener: RequestListener = async (req, res) => {
       await user.save();
     } else {
       Bugsnag.notify(err);
-      return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: err 10`);
+      return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: Could not save user info to database`);
     }
   }
 
   await sendDirectMessage(twId, TEXTS.ACCOUNT_LINKED);
 
-  let projects: Project[];
+  // get user projects and save default project
+  const projects = await getUserProjects(token);
+  user.todoistProjectId = projects?.[0].id || '0';
 
-  try {
-    projects = await getTodoistProjects(token);
-  } catch (err) {
-    Bugsnag.notify(err);
-    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: err 11`);
-  }
-
-  let todoistId: string;
-  try {
-    const { id } = await getTodoistUserData(token);
-    todoistId = id;
-  } catch (err) {
-    Bugsnag.notify(err);
-    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: err 11.1`);
-  }
-
-  user.todoistId = todoistId;
-  user.todoistProjectId = projects[0].id;
+  // get todoist id
+  const todoistId = await getTodoistId(token);
+  if(!todoistId) sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: Something went wrong getting your Todoist ID`);
+  user.todoistId = todoistId || '0';
 
   try {
     await user.save();
   } catch (err) {
     Bugsnag.notify(err);
     return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: err 12`);
-  }
+  } 
 
   const projectsString = projects
-    .map((project, index) => `${index} - ${project.name}`)
-    .join('\n');
+    ? projects.map((project, index) => `${index} - ${project.name}`).join('\n')
+    : 'Something went wrong getting your projects. Please try again later.';
 
   sendDirectMessage(
     twId,
@@ -131,7 +117,11 @@ export const getUserToken = async (authCode: string) => {
   url.searchParams.append('code', authCode);
 
   try {
-    const { data } = await axios.post(url.href);
+    const data = await fetch(url.href, { method: 'POST' }).then(res => {
+      if (res.ok) return res.json();
+      throw new Error('Could not get token', { cause: new Error(res.statusText) });
+    });
+
     return data.access_token || null;
   } catch (err) {
     Bugsnag.notify(err);
@@ -139,3 +129,23 @@ export const getUserToken = async (authCode: string) => {
     return null;
   }
 };
+
+async function getUserProjects (token: string) {
+  try {
+    const projects = await getTodoistProjects(token);
+    return projects;
+  } catch (err) {
+    Bugsnag.notify(err);
+  }
+}
+
+async function getTodoistId (token: string) {
+  let todoistId: string | undefined;
+  try {
+    const data = await getTodoistUserData(token);
+    todoistId = data.user?.id;
+  } catch (err) {
+    Bugsnag.notify(err);
+  }
+  return todoistId;
+}
