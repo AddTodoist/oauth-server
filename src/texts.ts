@@ -13,6 +13,7 @@ To select a project send me\n\
 For example:\n\
 /project 0\n\
 By default project 0 is selected`,
+  TODOIST_ERROR = '🔴 Something went wrong with Todoist Servers. This is not your fault, also not ours. Please try again later.',
 }
 
 export default OAuthServerTexts;

@@ -56,9 +56,17 @@ const requestListener: RequestListener = async (req, res) => {
 
   res.writeHead(301, { Location: 'https://twitter.com/messages' }).end();
 
-  const token = await getUserToken(code as string);
+  const { token, errorStatus } = await getUserToken(code as string);
 
-  if (!token) return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: err 9`);
+  if (token === null) {
+    if (errorStatus >= 500) {
+      return sendDirectMessage(twId, TEXTS.TODOIST_ERROR, {
+        type: 'options',
+        options: [{ label: '/init' }]
+      });
+    }
+    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: err 9`);
+  }
 
   const user = new UserInfo({
     _id: hashId(twId),
@@ -118,18 +126,19 @@ export const getUserToken = async (authCode: string) => {
 
   try {
     const data = await fetch(url.href, { method: 'POST' }).then(async res => {
-      const data = await res.json();
-      if (res.ok) return data;
-
-      throw new Error(data.error);
+      if (res.ok) return res.json();
+      return Promise.reject(res);
     });
 
-    return data.access_token || null;
-  } catch (err) {
-    Bugsnag.notify(err);
+    const token: string = data.access_token;
+
+    return { token } as const;
+  } catch (err) { // Response object
     console.log('[getUserToken] Error getting token', err);
-    console.log({ err });
-    return null;
+
+    console.log({ status: err.status, url: err.url });
+  
+    return { token: null, errorStatus: err.status as number } as const;
   }
 };
 
