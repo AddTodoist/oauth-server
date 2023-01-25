@@ -108,8 +108,8 @@ const requestListener: RequestListener = async (req, res) => {
 };
 
 export const getUserToken = async (authCode: string) => {
-  const clientId = process.env.TODOIST_CLIENT_ID as string;
-  const clientSecret = process.env.TODOIST_CLIENT_SECRET as string;
+  const clientId = process.env.TODOIST_CLIENT_ID;
+  const clientSecret = process.env.TODOIST_CLIENT_SECRET;
 
   const url = new URL('https://todoist.com/oauth/access_token');
   url.searchParams.append('client_id', clientId);
@@ -117,15 +117,18 @@ export const getUserToken = async (authCode: string) => {
   url.searchParams.append('code', authCode);
 
   try {
-    const data = await fetch(url.href, { method: 'POST' }).then(res => {
-      if (res.ok) return res.json();
-      throw new Error('Could not get token', { cause: new Error(res.statusText) });
+    const data = await fetch(url.href, { method: 'POST' }).then(async res => {
+      const data = await res.json();
+      if (res.ok) return data;
+
+      throw new Error(data.error);
     });
 
     return data.access_token || null;
   } catch (err) {
     Bugsnag.notify(err);
-    console.log('Something went wrong in getUserToken');
+    console.log('[getUserToken] Error getting token', err);
+    console.log({ err });
     return null;
   }
 };
