@@ -24,9 +24,7 @@ export async function setupOAuthServer() {
 const requestListener: RequestListener = async (req, res) => {
   const { pathname: path, query } = parse(req.url as string, true);
   
-  if (path === '/status') {
-    return res.writeHead(200).end();
-  }
+  if (path === '/status') return res.writeHead(200).end();
 
   if (path === '/usercount') {
     const count = await UserInfo.countDocuments();
@@ -65,14 +63,39 @@ const requestListener: RequestListener = async (req, res) => {
         options: [{ label: '/init' }]
       });
     }
-    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: err 9`);
+    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG} getting your Todoist token. Try again.`, {
+      type: 'options',
+      options: [{ label: '/init' }]
+    });
   }
+
+  // get user projects and save default project
+  const projects = await getUserProjects(token);
+
+  if (projects === null || projects.length === 0) {
+    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG} getting your projects.`,  {
+      type: 'options',
+      options: [{ label: '/init' }]
+    });
+  }
+
+  // get todoist id
+  const todoistId = await getTodoistId(token);
+
+  if(!todoistId) {
+    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG} getting your Todoist ID`,  {
+      type: 'options',
+      options: [{ label: '/init' }]
+    });
+  }
+
+  const projectsString = projects.map((project, index) => `${index} - ${project.name}`).join('\n');
 
   const user = new UserInfo({
     _id: hashId(twId),
     todoistToken: encryptString(token),
-    todoistProjectId: '0',
-    todoistId: '0'
+    todoistProjectId: projects[0].id,
+    todoistId,
   });
 
   try {
@@ -87,31 +110,13 @@ const requestListener: RequestListener = async (req, res) => {
     }
   }
 
-  await sendDirectMessage(twId, TEXTS.ACCOUNT_LINKED);
-
-  // get user projects and save default project
-  const projects = await getUserProjects(token);
-  user.todoistProjectId = projects?.[0].id || '0';
-
-  // get todoist id
-  const todoistId = await getTodoistId(token);
-  if(!todoistId) sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: Something went wrong getting your Todoist ID`);
-  user.todoistId = todoistId || '0';
-
-  try {
-    await user.save();
-  } catch (err) {
-    Bugsnag.notify(err);
-    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG}: err 12`);
-  } 
-
-  const projectsString = projects
-    ? projects.map((project, index) => `${index} - ${project.name}`).join('\n')
-    : 'Something went wrong getting your projects. Please try again later.';
-
   sendDirectMessage(
     twId,
     TEXTS.PROJECT_CONFIG_HEADER + projectsString + TEXTS.PROJECT_CONFIG_FOOTER,
+    {
+      type: 'options',
+      options: [ { label: '/project 0' }, { label: `/project ${projects.length - 1}` }]
+    }
   );
 };
 
@@ -148,6 +153,7 @@ async function getUserProjects (token: string) {
     return projects;
   } catch (err) {
     Bugsnag.notify(err);
+    return null;
   }
 }
 
