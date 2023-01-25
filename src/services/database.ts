@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-await mongoose.connect(process.env.MONGO_DB || '');
+await mongoose.connect(process.env.MONGO_DB);
 
 const userSchema = new mongoose.Schema<IUserInfo>({
   _id: { type: String, required: true },

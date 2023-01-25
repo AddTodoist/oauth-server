@@ -1,4 +1,18 @@
 declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      TODOIST_CLIENT_ID: string;
+      TODOIST_CLIENT_SECRET: string;
+      TWITTER_CONSUMER_KEY: string;
+      TWITTER_CONSUMER_SECRET: string;
+      TWITTER_ACCESS_TOKEN: string;
+      TWITTER_ACCESS_TOKEN_SECRET: string;
+      TWITTER_WEBHOOK_ENV: string;
+      BUGSNAG_API_KEY: string;
+      MONGO_DB: string;
+      DB_SECRET: string;
+    }
+  }
   interface IUserInfo {
     /**
      * Unique user id
