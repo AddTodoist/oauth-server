@@ -52,35 +52,30 @@ const requestListener: RequestListener = async (req, res) => {
 
   if (token === null) {
     if (errorStatus >= 500) {
-      return sendDirectMessage(twId, TEXTS.TODOIST_ERROR, {
-        type: 'options',
-        options: [{ label: '/init' }]
-      });
+      return sendDirectMessage(twId, TEXTS.TODOIST_ERROR,
+        { type: 'options', options: [{ label: '/init' }] }
+      );
     }
-    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG} getting your Todoist token. Try again.`, {
-      type: 'options',
-      options: [{ label: '/init' }]
-    });
+    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG} getting your Todoist token. Try again.`,
+      { type: 'options', options: [{ label: '/init' }] }
+    );
   }
 
   // get user projects and save default project
   const projects = await getUserProjects(token);
 
   if (projects === null || projects.length === 0) {
-    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG} getting your projects.`,  {
-      type: 'options',
-      options: [{ label: '/init' }]
-    });
+    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG} getting your projects.`, 
+      { type: 'options', options: [{ label: '/init' }] }
+    );
   }
 
   // get todoist id
   const todoistId = await getTodoistId(token);
 
   if(!todoistId) {
-    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG} getting your Todoist ID`,  {
-      type: 'options',
-      options: [{ label: '/init' }]
-    });
+    return sendDirectMessage(twId, `${TEXTS.GENERAL_WRONG} getting your Todoist ID`, 
+      { type: 'options', options: [{ label: '/init' }] });
   }
 
   const projectsString = projects.map((project, index) => `${index} - ${project.name}`).join('\n');
