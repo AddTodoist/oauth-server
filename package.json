@@ -40,6 +40,7 @@
     "@doist/todoist-api-typescript": "2.1.2",
     "crypto-js": "4.1.1",
     "dotenv": "16.0.3",
+    "just-cache": "1.6.7",
     "mongoose": "6.8.4",
     "twitter-api-v2": "1.14.0"
   },

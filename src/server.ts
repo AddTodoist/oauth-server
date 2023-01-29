@@ -6,6 +6,7 @@ import UserInfo from 'services/database';
 import { encryptString, hashId } from 'services/crypto';
 import Bugsnag from 'services/bugsnag';
 import { getTodoistProjects, getTodoistUserData } from 'services/todoist-api';
+import { generateShieldResponse, getUsersCount } from 'services/getUsersCount';
 
 export async function setupOAuthServer() {
   const server = createServer(requestListener);
@@ -27,15 +28,8 @@ const requestListener: RequestListener = async (req, res) => {
   if (path === '/status') return res.writeHead(200).end();
 
   if (path === '/usercount') {
-    const count = await UserInfo.countDocuments();
-    const HALF_AN_HOUR_IN_SECONDS = 60 * 30;
-    // https://shields.io/endpoint
-    const shieldResponse = {
-      schemaVersion: 1,
-      label: 'Total Users',
-      message: String(count),
-      cacheSeconds: HALF_AN_HOUR_IN_SECONDS
-    };
+    const count = await getUsersCount();
+    const shieldResponse = generateShieldResponse(count);
     return res.writeHead(200).end(JSON.stringify(shieldResponse));
   }
 
