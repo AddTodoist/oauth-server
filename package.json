@@ -27,22 +27,22 @@
     "concurrently": "7.6.0",
     "cz-conventional-changelog": "3.3.0",
     "esbuild": "0.15.16",
-    "eslint": "8.32.0",
+    "eslint": "8.33.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.27.5",
     "nodemon": "2.0.20",
-    "semantic-release": "19.0.5",
+    "semantic-release": "20.1.0",
     "ts-node": "10.9.1",
     "typescript": "4.9.4"
   },
   "dependencies": {
-    "@bugsnag/js": "7.18.0",
+    "@bugsnag/js": "7.19.0",
     "@doist/todoist-api-typescript": "2.1.2",
     "crypto-js": "4.1.1",
     "dotenv": "16.0.3",
     "just-cache": "1.6.7",
-    "mongoose": "6.8.4",
-    "twitter-api-v2": "1.14.0"
+    "mongoose": "6.9.0",
+    "twitter-api-v2": "1.14.1"
   },
   "engines": {
     "node": ">=18"
